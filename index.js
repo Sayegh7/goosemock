@@ -43,6 +43,14 @@ module.exports = function () {
       cb(null, cachedResult);
     })
   }
+  
+  const trim = (doc) => {
+    Object.keys(doc).forEach(key => {
+      if (doc[key] && doc[key].id && typeof doc[key].id === 'string')
+        doc[key] = doc[key].id;
+    })
+    return doc;
+  }
 
   models.forEach(model => {
     db[model] = [];
@@ -54,10 +62,11 @@ module.exports = function () {
         })
         cb(null, arr)
       });
-
     }
+
     mongoose.models[model].create = (doc, callback) => {
       return promiseOrCallback(callback, cb => {
+        doc = trim(doc);
         const obj = { ...doc, _id: new ObjectId() };
         const document = new mongoose.models[model](obj);
         const error = document.validateSync();
@@ -71,11 +80,11 @@ module.exports = function () {
     }
 
     mongoose.models[model].findOne = (doc, callback) => {
-      let v = {};
       if (doc.constructor.name === 'ObjectID') {
         let result = db[model].find(obj => obj["_id"].equals(doc))
         cachedResult = new mongoose.models[model](result);
       } else {
+        doc = trim(doc);
         let result = db[model].filter(obj => {
           let keys = Object.keys(doc);
           let match = true;
@@ -90,12 +99,39 @@ module.exports = function () {
         })
         cachedResult = new mongoose.models[model](result[0]);
       }
-
       let promise = promiseOrCallback(callback, cb => {
         cb(null, cachedResult);
       });
       promise.populate = populate;
       return promise;
+    }
+
+    mongoose.models[model].findOneAndUpdate = (doc, update, callback) => {
+      if (doc.constructor.name === 'ObjectID') {
+        cachedResult = db[model].find(obj => obj["_id"].equals(doc));
+      } else {
+        doc = trim(doc);
+        let result = db[model].filter(obj => {
+          let keys = Object.keys(doc);
+          let match = true;
+          keys.forEach(key => {
+            if (doc[key].constructor.name === 'ObjectID') {
+              match = match && obj[key].equals(doc[key]);
+            } else {
+              match = match && obj[key] == doc[key];
+            }
+          })
+          return match;
+        })
+        cachedResult = result[0];
+      }
+      Object.keys(update).forEach(key => {
+        cachedResult[key] = update[key];
+      })
+      cachedResult = new mongoose.models[model](cachedResult);
+      return promiseOrCallback(callback, cb => {
+        cb(null, cachedResult);
+      });
     }
 
     mongoose.models[model].prototype.save = (callback) => {
