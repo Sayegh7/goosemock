@@ -59,28 +59,37 @@ module.exports = function () {
     mongoose.models[model].create = (doc, callback) => {
       return promiseOrCallback(callback, cb => {
         const obj = { ...doc, _id: new ObjectId() };
-        db[model].push(obj);
-        cb(null, new mongoose.models[model](obj))
+        const document = new mongoose.models[model](obj);
+        const error = document.validateSync();
+        if (!error) {
+          db[model].push(obj);
+          cb(null, document);
+        } else {
+          cb(error);
+        }
       });
     }
+
     mongoose.models[model].findOne = (doc, callback) => {
+      let v = {};
       if (doc.constructor.name === 'ObjectID') {
         let result = db[model].find(obj => obj["_id"].equals(doc))
-        return cb(null, result);
-      }
-      let result = db[model].filter(obj => {
-        let keys = Object.keys(doc);
-        let match = true;
-        keys.forEach(key => {
-          if (doc[key].constructor.name === 'ObjectID') {
-            match = match && obj[key].equals(doc[key]);
-          } else {
-            match = match && obj[key] == doc[key];
-          }
+        cachedResult = new mongoose.models[model](result);
+      } else {
+        let result = db[model].filter(obj => {
+          let keys = Object.keys(doc);
+          let match = true;
+          keys.forEach(key => {
+            if (doc[key].constructor.name === 'ObjectID') {
+              match = match && obj[key].equals(doc[key]);
+            } else {
+              match = match && obj[key] == doc[key];
+            }
+          })
+          return match;
         })
-        return match;
-      })
-      cachedResult = new mongoose.models[model](result[0]);
+        cachedResult = new mongoose.models[model](result[0]);
+      }
 
       let promise = promiseOrCallback(callback, cb => {
         cb(null, cachedResult);
@@ -89,7 +98,11 @@ module.exports = function () {
       return promise;
     }
 
-
+    mongoose.models[model].prototype.save = (callback) => {
+      return promiseOrCallback(callback, cb => {
+        cb(null, {});
+      })
+    }
 
     mongoose.models[model].deleteOne = (doc, callback) => {
       return promiseOrCallback(callback, cb => {
@@ -143,6 +156,30 @@ module.exports = function () {
     //         cb(null, result[0]);
     //     });
     // }
+
+
+    mongoose.models[model].update = (doc, update, callback) => {
+      return promiseOrCallback(callback, cb => {
+        let arr = [];
+        db[model].forEach((obj, i) => {
+          let keys = Object.keys(doc);
+          let match = true;
+          keys.forEach(key => {
+            if (doc[key].constructor.name === 'ObjectID') {
+              match = match && obj[key] == doc[key].toString();
+            } else {
+              match = match && obj[key] == doc[key];
+            }
+          })
+          if (match) {
+            const updated = Object.assign({}, obj, update);
+            db[model][i] = updated;
+            arr.push(updated);
+          }
+        })
+        cb(null, arr);
+      });
+    }
 
 
     mongoose.models[model].find = (doc, callback) => {
