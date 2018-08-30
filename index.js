@@ -37,6 +37,8 @@ module.exports = function () {
     models.forEach(model => {
         db[model] = [];
 
+
+
         mongoose.models[model].insertMany = (arr, options, callback) => {
             return promiseOrCallback(callback, cb => {
                 arr.forEach(doc => {
@@ -54,12 +56,16 @@ module.exports = function () {
         }
         mongoose.models[model].findOne = (doc, callback) => {
             return promiseOrCallback(callback, cb => {
+                if (doc.constructor.name === 'ObjectID') {
+                    let result = db[model].find(obj => obj["_id"].equals(doc))
+                    return cb(null, result);
+                }
                 let result = db[model].filter(obj => {
                     let keys = Object.keys(doc);
                     let match = true;
                     keys.forEach(key => {
                         if (doc[key].constructor.name === 'ObjectID') {
-                            match = match && obj[key] == doc[key].toString();
+                            match = match && obj[key].equals(doc[key]);
                         } else {
                             match = match && obj[key] == doc[key];
                         }
@@ -70,17 +76,6 @@ module.exports = function () {
             });
         }
 
-
-        // TODO:
-        mongoose.models[model].findById = (id, callback) => {
-            return promiseOrCallback(callback, cb => {
-                let result = db[model].filter(obj => {
-                    return obj["_id"] == id;
-                })
-
-                cb(null, result[0]);
-            });
-        }
 
 
         mongoose.models[model].deleteOne = (doc, callback) => {
@@ -90,7 +85,7 @@ module.exports = function () {
                     let match = true;
                     keys.forEach(key => {
                         if (doc[key].constructor.name === 'ObjectID') {
-                            match = match && obj[key] == doc[key].toString();
+                            match = match && obj[key] == doc[key];
                         } else {
                             match = match && obj[key] == doc[key];
                         }
@@ -99,12 +94,12 @@ module.exports = function () {
                 })
                 let idx = db[model].indexOf(result[0]);
                 db[model] = db[model].splice(idx, 1);
-                cb(null, result[0]);
+                cb(null, result);
             });
         }
 
 
-        mongoose.models[model].updateOne = (doc, callback) => {
+        mongoose.models[model].updateOne = (doc, update, callback) => {
             return promiseOrCallback(callback, cb => {
                 let result = db[model].find(obj => {
                     let keys = Object.keys(doc);
@@ -118,23 +113,23 @@ module.exports = function () {
                     })
                     return match;
                 })
-                let idx = db[model].indexOf(result[0]);
-                Object.keys(doc).forEach(key => {
-                    db[model][idx][key] = doc[key];
+                let idx = db[model].indexOf(result);
+                Object.keys(update).forEach(key => {
+                    db[model][idx][key] = update[key];
                 })
                 cb(null, db[model][idx]);
             });
         }
 
 
-        mongoose.models[model].findById = (id, callback) => {
-            return promiseOrCallback(callback, cb => {
-                let result = db[model].filter(obj => {
-                    return obj["_id"] == id;
-                })
-                cb(null, result[0]);
-            });
-        }
+        // mongoose.models[model].findById = (id, callback) => {
+        //     return promiseOrCallback(callback, cb => {
+        //         let result = db[model].filter(obj => {
+        //             return obj["_id"] == id;
+        //         })
+        //         cb(null, result[0]);
+        //     });
+        // }
 
 
         mongoose.models[model].find = (doc, callback) => {
