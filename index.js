@@ -36,6 +36,10 @@ module.exports = function () {
 
   const populate = (field, callback) => {
     return promiseOrCallback(callback, cb => {
+      if (!cachedResult) {
+        cb(null, cachedResult);
+        return;
+      }
       const prop = db[cachedResult.schema.obj[field].ref].filter(obj => {
         return obj._id === cachedResult[field]
       })[0]
@@ -67,6 +71,15 @@ module.exports = function () {
     mongoose.models[model].create = (doc, callback) => {
       return promiseOrCallback(callback, cb => {
         doc = trim(doc);
+        const paths = mongoose.models[model].schema.paths;
+        Object.keys(paths).forEach(path => {
+          if (!doc[path]) {
+            if (typeof paths[path].defaultValue === 'function')
+              doc[path] = paths[path].defaultValue();
+            else if (typeof paths[path].defaultValue !== 'undefined')
+              doc[path] = paths[path].defaultValue;
+          }
+        })
         const obj = { ...doc, _id: new ObjectId() };
         const document = new mongoose.models[model](obj);
         const error = document.validateSync();
@@ -82,7 +95,7 @@ module.exports = function () {
     mongoose.models[model].findOne = (doc, callback) => {
       if (doc.constructor.name === 'ObjectID') {
         let result = db[model].find(obj => obj["_id"].equals(doc))
-        cachedResult = new mongoose.models[model](result);
+        cachedResult = result && new mongoose.models[model](result);
       } else {
         doc = trim(doc);
         let result = db[model].filter(obj => {
@@ -97,7 +110,7 @@ module.exports = function () {
           })
           return match;
         })
-        cachedResult = new mongoose.models[model](result[0]);
+        cachedResult = result[0] && new mongoose.models[model](result[0]);
       }
       let promise = promiseOrCallback(callback, cb => {
         cb(null, cachedResult);
