@@ -1,11 +1,17 @@
 {
   "name": "goosemock",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Package for mocking mongoose",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "mongoose",
+    "mocking",
+    "in-memory",
+    "framework"
+  ],
   "author": "Ahmed El Sayegh",
   "license": "ISC",
   "dependencies": {
