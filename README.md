@@ -12,9 +12,9 @@ npm install goosemock
 ## Usage
 Using goosemock is simple. Simply require and run it after mongoose like so:
 ```
-const mongoose = require('mongoose');
-const goosemock = require('goosemock');
+const mongoose = require('mongoose')
+const goosemock = require('goosemock')
 
-goosemock();
+goosemock()
 ```
 Now all calls to mongoose functions will be executed in-memory. Note also that even `mongoose.connect()` will no longer be able to connect to the server as it is intercepted by goosemock.

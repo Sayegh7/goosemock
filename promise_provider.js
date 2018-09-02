@@ -2,10 +2,10 @@
  * ignore
  */
 
-'use strict';
+'use strict'
 
-const assert = require('assert');
-const mquery = require('mquery');
+const assert = require('assert')
+const mquery = require('mquery')
 
 /**
  * Helper for multiplexing promise implementations
@@ -15,7 +15,7 @@ const mquery = require('mquery');
 
 const store = {
   _promise: null
-};
+}
 
 /**
  * Get the current promise constructor
@@ -23,9 +23,9 @@ const store = {
  * @api private
  */
 
-store.get = function() {
-  return store._promise;
-};
+store.get = function () {
+  return store._promise
+}
 
 /**
  * Set the current promise constructor
@@ -33,17 +33,17 @@ store.get = function() {
  * @api private
  */
 
-store.set = function(lib) {
+store.set = function (lib) {
   assert.ok(typeof lib === 'function',
-    `mongoose.Promise must be a function, got ${lib}`);
-  store._promise = lib;
-  mquery.Promise = lib;
-};
+    `mongoose.Promise must be a function, got ${lib}`)
+  store._promise = lib
+  mquery.Promise = lib
+}
 
 /*!
  * Use native promises by default
  */
 
-store.set(global.Promise);
+store.set(global.Promise)
 
-module.exports = store;
+module.exports = store
