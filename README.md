@@ -6,13 +6,13 @@ Goosemock is mongoose mocking framework. This package was created because we nee
 
 ## Installation
 Install Goosemock with npm
-```
+```bash
 npm install goosemock
 ```
 
 ## Usage
 Using goosemock is simple. Simply require and run it after mongoose like so:
-```
+```javascript
 const mongoose = require('mongoose')
 const goosemock = require('goosemock')
 
