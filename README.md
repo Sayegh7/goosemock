@@ -1,5 +1,6 @@
 # Goosemock
 [![npm version](https://badge.fury.io/js/goosemock.svg)](https://badge.fury.io/js/goosemock)
+![npm](https://img.shields.io/npm/dt/goosemock.svg)
 
 Goosemock is mongoose mocking framework. This package was created because we needed to write unit tests on a backend that used mongoose and we needed something to mock the behavior of mongoose but in a dynamic way. It is essentially an in memory database but without the need for a even a database server or any installations. All mongoose functions affect in-memory data data structures.
 
