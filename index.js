@@ -104,7 +104,8 @@ module.exports = function () {
           let match = true;
           keys.forEach(key => {
             if (doc[key].constructor.name === 'ObjectID') {
-              match = match && obj[key].equals(doc[key]);
+              
+              match = match && doc[key].equals(ObjectId(obj[key]));
             } else {
               match = match && obj[key] == doc[key];
             }
@@ -130,7 +131,7 @@ module.exports = function () {
           let match = true;
           keys.forEach(key => {
             if (doc[key].constructor.name === 'ObjectID') {
-              match = match && obj[key].equals(doc[key]);
+              match = match && doc[key].equals(ObjectId(obj[key]));
             } else {
               match = match && obj[key] == doc[key];
             }
@@ -161,7 +162,7 @@ module.exports = function () {
           let match = true
           keys.forEach(key => {
             if (doc[key].constructor.name === 'ObjectID') {
-              match = match && obj[key] == doc[key]
+              match = match && doc[key].equals(ObjectId(obj[key]));
             } else {
               match = match && obj[key] == doc[key]
             }
