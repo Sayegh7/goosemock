@@ -41,7 +41,7 @@ module.exports = function () {
         return;
       }
       const prop = db[cachedResult.schema.obj[field].ref].filter(obj => {
-        return obj._id === cachedResult[field]
+        return obj._id.toString() === cachedResult[field].toString()
       })[0]
       cachedResult.company = new mongoose.models[cachedResult.schema.obj[field].ref](prop);
       cb(null, cachedResult);
