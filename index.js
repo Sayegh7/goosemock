@@ -42,7 +42,7 @@ module.exports = function () {
       const prop = db[cachedResult.schema.obj[field].ref].filter(obj => {
         return obj._id.toString() === cachedResult[field].toString()
       })[0]
-      cachedResult.company = new mongoose.models[cachedResult.schema.obj[field].ref](prop)
+      cachedResult[field] = new mongoose.models[cachedResult.schema.obj[field].ref](prop)
       cb(null, cachedResult)
     })
   }
@@ -58,6 +58,15 @@ module.exports = function () {
     db[model] = []
 
     const Model = mongoose.models[model]
+
+    const equals = (lhs, rhs) => {
+      if (rhs.constructor.name === 'ObjectID') {
+        return lhs == rhs.toString()
+      } else {
+        return lhs == rhs
+      }
+    }
+
     Model.insertMany = (arr, options, callback) => {
       return promiseOrCallback(callback, cb => {
         arr.forEach(doc => {
@@ -98,11 +107,7 @@ module.exports = function () {
           let keys = Object.keys(doc)
           let match = true
           keys.forEach(key => {
-            if (doc[key].constructor.name === 'ObjectID') {
-              match = match && doc[key].equals(ObjectId(obj[key]))
-            } else {
-              match = match && obj[key] == doc[key]
-            }
+            match = match && equals(obj[key], doc[key])
           })
           return match
         })
@@ -124,11 +129,7 @@ module.exports = function () {
           let keys = Object.keys(doc)
           let match = true
           keys.forEach(key => {
-            if (doc[key].constructor.name === 'ObjectID') {
-              match = match && doc[key].equals(ObjectId(obj[key]))
-            } else {
-              match = match && obj[key] == doc[key]
-            }
+            match = match && equals(obj[key], doc[key])
           })
           return match
         })
@@ -155,11 +156,7 @@ module.exports = function () {
           let keys = Object.keys(doc)
           let match = true
           keys.forEach(key => {
-            if (doc[key].constructor.name === 'ObjectID') {
-              match = match && doc[key].equals(ObjectId(obj[key]))
-            } else {
-              match = match && obj[key] == doc[key]
-            }
+            match = match && equals(obj[key], doc[key])
           })
           return match
         })
@@ -177,11 +174,7 @@ module.exports = function () {
           let keys = Object.keys(doc)
           let match = true
           keys.forEach(key => {
-            if (doc[key].constructor.name === 'ObjectID') {
-              match = match && obj[key] == doc[key]
-            } else {
-              match = match && obj[key] == doc[key]
-            }
+            match = match && equals(obj[key], doc[key])
           })
           return match
         })
@@ -198,11 +191,7 @@ module.exports = function () {
           let keys = Object.keys(doc)
           let match = true
           keys.forEach(key => {
-            if (doc[key].constructor.name === 'ObjectID') {
-              match = match && obj[key] == doc[key].toString()
-            } else {
-              match = match && obj[key] == doc[key]
-            }
+            match = match && equals(obj[key], doc[key])
           })
           return match
         })
@@ -214,15 +203,6 @@ module.exports = function () {
       })
     }
 
-    // Model.findById = (id, callback) => {
-    //     return promiseOrCallback(callback, cb => {
-    //         let result = db[model].filter(obj => {
-    //             return obj["_id"] == id;
-    //         })
-    //         cb(null, result[0]);
-    //     });
-    // }
-
     Model.update = (doc, update, callback) => {
       return promiseOrCallback(callback, cb => {
         let arr = []
@@ -230,10 +210,10 @@ module.exports = function () {
           let keys = Object.keys(doc)
           let match = true
           keys.forEach(key => {
-            if (doc[key].constructor.name === 'ObjectID') {
-              match = match && obj[key] == doc[key].toString()
+            if (doc[key].$ne) {
+              match = match && !equals(obj[key], doc[key].$ne)
             } else {
-              match = match && obj[key] == doc[key]
+              match = match && equals(obj[key], doc[key])
             }
           })
           if (match) {
@@ -252,11 +232,7 @@ module.exports = function () {
           let keys = Object.keys(doc)
           let match = true
           keys.forEach(key => {
-            if (doc[key].constructor.name === 'ObjectID') {
-              match = match && obj[key] == doc[key].toString()
-            } else {
-              match = match && obj[key] == doc[key]
-            }
+            match = match && equals(obj[key], doc[key])
           })
           return match
         })
