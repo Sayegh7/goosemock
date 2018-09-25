@@ -4,6 +4,7 @@
   "description": "Package for mocking mongoose",
   "main": "index.js",
   "scripts": {
+    "lint": "eslint --fix *.js **/*.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
