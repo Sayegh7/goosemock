@@ -1,6 +1,6 @@
 {
   "name": "goosemock",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Package for mocking mongoose",
   "main": "index.js",
   "scripts": {
