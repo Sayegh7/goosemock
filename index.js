@@ -2,6 +2,7 @@ var mongoose = require('mongoose')
 var ObjectId = mongoose.Types.ObjectId
 let db = {}
 let cachedResult = {}
+let cachedResultArr = []
 const PromiseProvider = require('./promise_provider')
 
 const promiseOrCallback = function (callback, fn) {
@@ -44,6 +45,24 @@ module.exports = function () {
       })[0]
       cachedResult[field] = new mongoose.models[cachedResult.schema.obj[field].ref](prop)
       cb(null, cachedResult)
+    })
+  }
+
+  const populateArray = (field, callback) => {
+    return promiseOrCallback(callback, cb => {
+      if (cachedResultArr.length === 0) {
+        cb(null, cachedResult)
+        return
+      }
+      let result = []
+      cachedResultArr.forEach(cachedResult => {
+        const prop = db[cachedResult.schema.obj[field].ref].filter(obj => {
+          return obj._id.toString() === cachedResult[field].toString()
+        })[0]
+        const res = new mongoose.models[cachedResult.schema.obj[field].ref](prop)
+        result.push(res)
+      })
+      cb(null, result)
     })
   }
 
@@ -227,7 +246,7 @@ module.exports = function () {
     }
 
     Model.find = (doc, callback) => {
-      return promiseOrCallback(callback, cb => {
+      const promise = promiseOrCallback(callback, cb => {
         let result = db[model].filter(obj => {
           let keys = Object.keys(doc)
           let match = true
@@ -236,8 +255,11 @@ module.exports = function () {
           })
           return match
         })
+        cachedResultArr = result.map(res => new Model(res))
         cb(null, result)
       })
+      promise.populate = populateArray
+      return promise
     }
   })
 
