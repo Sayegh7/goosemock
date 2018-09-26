@@ -56,11 +56,12 @@ module.exports = function () {
       }
       let result = []
       cachedResultArr.forEach(cachedResult => {
+        const item = cachedResult
         const prop = db[cachedResult.schema.obj[field].ref].filter(obj => {
           return obj._id.toString() === cachedResult[field].toString()
         })[0]
-        const res = new mongoose.models[cachedResult.schema.obj[field].ref](prop)
-        result.push(res)
+        item[field] = new mongoose.models[cachedResult.schema.obj[field].ref](prop)
+        result.push(item)
       })
       cb(null, result)
     })
